@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@import "insola-tech-ui-kit/style.css" layer(base);
+
+:root {
+  --mouse-x: 0px;
+  --mouse-y: 0px;
+}
+
+.position-under-cursor {
+  left: var(--mouse-x);
+  top: var(--mouse-y);
+}
