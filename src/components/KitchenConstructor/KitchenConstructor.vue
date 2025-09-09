@@ -59,7 +59,7 @@ onMounted(async () => {
   controls = new OrbitControls(camera, canvas.value)
   initCameraAndControls(camera, controls, () => requestRenderIfNotRequested(renderer, scene, camera, controls))
   const localKitchen = localStorage.getItem('kitchen')
-  store.modules = localKitchen ? await JSON.parse(localKitchen) : [{width: 600, height: 800, depth: 670, x: 0, y: 0, z: 0, rotation: ROTATIONS.FRONT, type: 'kitchenLower', hasRearWall: true}]
+  store.modules = localKitchen ? await JSON.parse(localKitchen) : [{width: 600, height: 800, depth: 670, x: 0, y: 0, z: 0, rotation: ROTATIONS.FRONT, type: 'default', hasRearWall: true}]
 
   initLight(scene);
 

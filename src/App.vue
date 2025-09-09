@@ -23,12 +23,14 @@ const constructor = ref();
 const moduleIndex = ref();
 const selectedModule = ref();
 const clickedPanel = ref<TPanelUserData["position"] | null>(null);
+
+// тут была более развернутая логика для большего количества модулей
 const newModuleOptions = ref<Record<TPanelUserData["position"], TFurnitureModuleCreationType[]>>({
-  'top': ['default', 'tableTop', 'kitchenDrawers'],
-  'bottom': ['default', 'kitchenLower', 'kitchenDrawers'],
-  'left': ['default', 'kitchenLower', 'kitchenDrawers', 'corner'],
-  'right': ['default', 'kitchenLower', 'kitchenDrawers', 'corner'],
-  'front': ['default', 'kitchenLower', 'kitchenDrawers', 'corner']
+  'top': ['default', 'tableTop'],
+  'bottom': ['default'],
+  'left': ['default'],
+  'right': ['default'],
+  'front': ['default']
 })
 
 function setDimensionChangeMenu(userData: TPanelUserData, event: MouseEvent) {
