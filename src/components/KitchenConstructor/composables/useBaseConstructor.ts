@@ -4,6 +4,12 @@ import {useKitchenConstructorStore} from "@/stores/useKitchenConstructorStore/us
 import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import type { Texture } from 'three'
 
+/**
+ * Здесь инкапсулирована низкоуровневая, доменно-независимая логика отрисовки сцены:
+ * - Настройки камера, сцены, света
+ * - Загрузка текстур и контроль за используемыми материалами для оптимизации памяти
+ * - Очистка и обновление сцены
+ * */
 export const useBaseConstructor = () => {
   const store = useKitchenConstructorStore();
   const loader = new THREE.TextureLoader();

@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import {PhListChecks, PhPencilRuler} from "@phosphor-icons/vue";
+/**
+ * Всё управление и реагирование на ввод в конструктор происходит здесь
+ * Тут нужно прописывать всю бизнес-логику того, как модули собираются вместе и реагируют на действия
+ * над ними. В будущем это позволит использовать один и тот же движок для разных применений
+ * */
 import DimensionChangeMenu from "@/components/DimensionChangeMenu.vue";
 import KitchenConstructor from "@/components/KitchenConstructor/KitchenConstructor.vue";
 import type {TPanelUserData} from "@/components/NewModuleModal/types";
@@ -10,7 +14,6 @@ import {
   type TFurnitureModuleCreationType
 } from "@/stores/useKitchenConstructorStore/types"
 import { computed, ref } from 'vue'
-import SidebarMenuButton from '@/components/SidebarMenuButton.vue'
 import ModuleActionsMenu from '@/components/ModuleActionsMenu.vue'
 import NewModuleModal from '@/components/NewModuleModal/NewModuleModal.vue'
 import ModuleCreationMenu from '@/components/ModuleCreationMenu.vue'
@@ -206,14 +209,6 @@ function handleModuleCreation(type: TFurnitureModuleCreationType) {
 <template>
   <div class="fixed">
     <div class="fixed top-0 bottom-0 flex flex-col justify-center">
-      <div class="h-fit flex flex-col justify-center p-6 gap-4">
-        <SidebarMenuButton class="drop-shadow-lg hover:drop-shadow-xl transition-all" @click="activeMenu = 'config'" popup-text="Размеры">
-          <PhPencilRuler size="24"/>
-        </SidebarMenuButton>
-        <SidebarMenuButton class="drop-shadow-lg hover:drop-shadow-xl transition-all" @click="activeMenu='options'" popup-text="Опции">
-          <PhListChecks size="24"/>
-        </SidebarMenuButton>
-      </div>
       <DimensionChangeMenu
         v-if="activeMenu === 'dimension'"
         class="absolute rounded shadow-xl position-under-cursor"

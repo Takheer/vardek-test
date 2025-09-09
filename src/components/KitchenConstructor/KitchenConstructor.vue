@@ -1,11 +1,16 @@
 <script setup lang="ts">
+/**
+ * Этот компонент инкапсулирует отрисовку и реагирование на элементы управления.
+ * Это нужно для того, чтобы в будущем иметь возможность использовать его для показа готовых моделей
+ * на страницах пользователей. Все меню и всю реакцию на клики по размерам/панелям нужно делать
+ * на уровень выше
+ * */
 import * as THREE from 'three';
 import {Mesh, Raycaster} from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {useBaseConstructor} from "@/components/KitchenConstructor/composables/useBaseConstructor";
 import {useKitchenConstructor} from "@/components/KitchenConstructor/composables/useKitchenConstructor";
 import {useKitchenConstructorStore} from "@/stores/useKitchenConstructorStore/useKitchenConstructorStore";
-import {ROTATIONS} from "@/stores/useKitchenConstructorStore/types";
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { TPanelUserData } from '@/components/NewModuleModal/types.ts'
 
@@ -59,7 +64,7 @@ onMounted(async () => {
   controls = new OrbitControls(camera, canvas.value)
   initCameraAndControls(camera, controls, () => requestRenderIfNotRequested(renderer, scene, camera, controls))
   const localKitchen = localStorage.getItem('kitchen')
-  store.modules = localKitchen ? await JSON.parse(localKitchen) : [{width: 600, height: 800, depth: 670, x: 0, y: 0, z: 0, rotation: ROTATIONS.FRONT, type: 'default', hasRearWall: true}]
+  store.modules = localKitchen ? await JSON.parse(localKitchen) : [{width:600,height:800,depth:670,x:0,y:0,z:0,rotation:0,type:"default",hasRearWall:true,facade:{enabled:true,type:"ldsp",thickness:10,materialId:3}}]
 
   initLight(scene);
 

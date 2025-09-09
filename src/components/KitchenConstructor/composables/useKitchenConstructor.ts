@@ -8,6 +8,12 @@ import {ROTATIONS, type TFurnitureModule} from "@/stores/useKitchenConstructorSt
 import type {TPanelUserData} from "@/components/NewModuleModal/types";
 import { ref } from 'vue'
 
+/**
+ * Здесь инкапсулирована более бизнесовая логика отрисовки сцены:
+ * - Корпуса, столешницы и пеналы прописываются здесь
+ * - Вращение модулей по правилам, которые характерны именно для этих модулей
+ * - Отрисовка элементов интерфейса: ховер-мешей, контуров и размеров
+ * */
 export const useKitchenConstructor = () => {
   const store = useKitchenConstructorStore()
 
