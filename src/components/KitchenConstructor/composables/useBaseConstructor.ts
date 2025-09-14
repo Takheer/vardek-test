@@ -1,8 +1,22 @@
 import * as THREE from "three";
-import {useKitchenConstructorStore} from "@/stores/useKitchenConstructorStore/useKitchenConstructorStore";
+import {useKitchenConstructorStore} from "@/stores/useKitchenConstructorStore.ts";
 // @ts-expect-error битый тип
 import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import type { Texture } from 'three'
+// @ts-expect-error не типизирован
+import {Text} from 'troika-three-text'
+import { ref } from 'vue'
+
+type TUserData = {
+  width?: boolean
+  height?: boolean
+}
+
+const DOOR_THICKNESS = 64
+const PADDING = 6
+const DOORCASE_THICKNESS = 128
+const MEASUREMENTS_HEIGHT = 64
+const TEXT_OFFSET = MEASUREMENTS_HEIGHT + 48
+const AUX_PADDING = 2 // Нужен, чтобы размеры и сами панели не конфликтовали.
 
 /**
  * Здесь инкапсулирована низкоуровневая, доменно-независимая логика отрисовки сцены:
@@ -13,13 +27,11 @@ import type { Texture } from 'three'
 export const useBaseConstructor = () => {
   const store = useKitchenConstructorStore();
   const loader = new THREE.TextureLoader();
+  const doorTexture = ref<THREE.Texture>();
   loader.setCrossOrigin("anonymous");
 
   function clearScene(scene: THREE.Scene, full = false) {
-    store.totalPanelsAreaSqmm = 0;
-    store.rearWallAreaSqmm = 0;
-    store.panelsCount = 0;
-    for(let i = scene.children.length - 1; i >= 0; i--) {
+    for (let i = scene.children.length - 1; i >= 0; i--) {
       const obj = scene.children[i];
       if (full) {
         scene.remove(obj);
@@ -46,14 +58,13 @@ export const useBaseConstructor = () => {
     floorTexture.wrapT = THREE.RepeatWrapping;
     floorTexture.repeat.set( 6, 3 );
     floorTexture.minFilter = THREE.NearestFilter
-    const floorMaterial = new THREE.MeshBasicMaterial({
+    const floorMaterial = new THREE.MeshStandardMaterial({
       map: floorTexture,
     });
 
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.receiveShadow = true
     floor.castShadow = true
-    floor.receiveShadow = true
     floor.rotation.x = -Math.PI /2
     floor.position.z = 1500
     floor.userData = {static: true}
@@ -66,7 +77,7 @@ export const useBaseConstructor = () => {
     wallTexture.wrapS = THREE.RepeatWrapping;
     wallTexture.wrapT = THREE.RepeatWrapping;
     wallTexture.repeat.set( 6, 3 );
-    const wallMaterial = new THREE.MeshBasicMaterial({
+    const wallMaterial = new THREE.MeshStandardMaterial({
       map: wallTexture,
     });
 
@@ -74,37 +85,15 @@ export const useBaseConstructor = () => {
     wall.receiveShadow = true
     wall.castShadow = true
     wall.position.y = 1500
-    wall.position.z = -5
-    wall.receiveShadow = true
+    wall.position.z = 0
     wall.userData = {static: true}
     scene.add(wall);
   }
 
-  async function loadTexture(path: string): Promise<Texture | null> {
-    return new Promise((resolve) => {
-      loader.load(path, (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.wrapS = THREE.MirroredRepeatWrapping;
-        texture.wrapT = THREE.MirroredRepeatWrapping;
-        texture.repeat.set(1, 1);
-        texture.minFilter = THREE.NearestFilter
-
-        resolve(texture);
-      });
-    })
-  }
-
-  async function loadAllTextures() {
-    await Promise.all(store.listOptions.map(async (list) => {
-      const texture = await loadTexture(list.textureUrl)
-      if (!texture) return;
-      store.textures[list.id] = texture
-    }));
-  }
 
   function initCameraAndControls(camera: THREE.PerspectiveCamera, controls: OrbitControls, render: () => unknown) {
-    controls.target.set(0, store.totalHeight/2, 0);
-    camera.position.set(-store.totalWidth, store.totalHeight, 0)
+    controls.target.set(0, store.height/2, 0);
+    camera.position.set(-store.width, store.height, 0)
     zoomToFit(camera, controls, render);
     controls.enableDamping = true;
     controls.maxPolarAngle = Math.PI/2 - 0.1
@@ -141,7 +130,7 @@ export const useBaseConstructor = () => {
 
   function zoomToFit(camera: THREE.PerspectiveCamera, controls: OrbitControls, render: () => unknown) {
     // get the max side of the bounding box (fits to width OR height as needed )
-    const maxDim = Math.max( store.totalWidth, store.totalHeight );
+    const maxDim = Math.max( store.width, store.height );
     let cameraZ = Math.abs( maxDim * Math.tan( camera.fov * 2 ));
 
     cameraZ *= 1.2; // zoom out a little so that objects don't fill the screen
@@ -154,24 +143,24 @@ export const useBaseConstructor = () => {
   }
 
   function initLight(scene: THREE.Scene) {
-    const ambientLight = new THREE.AmbientLight( 0x404040, 3 ); // soft white light
-    scene.add( ambientLight );
+    console.log('initLight', scene);
+    doorTexture.value = loader.load( '/textures/ldsp_sherman.avif' );
+    // const ambientLight = new THREE.AmbientLight( 0x404040, 3 ); // soft white light
+    // scene.add( ambientLight );
 
-    //Create a DirectionalLight and turn on shadows for the light
-    const light = new THREE.DirectionalLight( 0xffffff, 3 );
-    light.position.set( -1, 2, 3 ); //default; light shining from top
-    light.castShadow = true; // default false
-    scene.add( light );
     const light2 = new THREE.DirectionalLight( 0xffffff, 3 );
-    light2.position.set( 2, -2, 3 ); //default; light shining from top
+    light2.position.set( 300, 200, 1000 );
+    light2.target.position.set( 0, 0, 0 );
     light2.castShadow = true; // default false
-    scene.add( light2 );
 
-    //Set up shadow properties for the light
-    light.shadow.mapSize.width = 512; // default
-    light.shadow.mapSize.height = 512; // default
-    light.shadow.camera.near = 0.5; // default
-    light.shadow.camera.far = 500; // default
+    light2.shadow.camera.near = 0.5; // default
+    light2.shadow.camera.far = 5000; // default
+    light2.shadow.camera.left = -1000;
+    light2.shadow.camera.bottom = -300;
+    light2.shadow.camera.top = 2500;
+    light2.shadow.camera.right = 700;
+    console.log('light2.shadow.camera', light2.shadow.camera)
+    scene.add( light2 );
   }
 
   let renderRequested = false
@@ -195,14 +184,104 @@ export const useBaseConstructor = () => {
     renderer.setSize( window.innerWidth, window.innerHeight );
   }
 
+  function xMeasurements(len: number, height: number, offsetX: number, offsetY: number, offsetZ: number = 0, flip = false) {
+    const material = new THREE.LineBasicMaterial( { color: 0x333333 } );
+
+    const points = [];
+    points.push( new THREE.Vector3(offsetX, offsetY, offsetZ));
+    points.push( new THREE.Vector3(offsetX, offsetY + (flip ? -1 : 1) * height, offsetZ));
+    points.push( new THREE.Vector3(offsetX + len, offsetY + (flip ? -1 : 1) * height, offsetZ));
+    points.push( new THREE.Vector3(offsetX + len, offsetY, offsetZ ));
+    const geometry = new THREE.BufferGeometry().setFromPoints( points );
+    return new THREE.Line( geometry, material );
+  }
+
+  function yMeasurements(len: number, height: number, offsetX: number, offsetY: number, offsetZ: number = 0, flip = false) {
+    const material = new THREE.LineBasicMaterial( { color: 0x333333 } );
+
+    const points = [];
+    points.push( new THREE.Vector3(offsetX - store.width/2, offsetY, offsetZ));
+    points.push( new THREE.Vector3(offsetX + (flip ? 1 : -1) * height - store.width/2, offsetY, offsetZ ) );
+    points.push( new THREE.Vector3(offsetX + (flip ? 1 : -1) * height - store.width/2, offsetY + len, offsetZ ) );
+    points.push( new THREE.Vector3(offsetX - store.width/2, offsetY + len, offsetZ ) );
+    const geometry = new THREE.BufferGeometry().setFromPoints( points );
+    return new THREE.Line( geometry, material );
+  }
+
+  function addText(text: string | number, offsetX: number, offsetY: number, offsetZ: number, userData?: TUserData, vertical = false, flat = false) {
+    const myText = new Text()
+    myText.text = text
+    myText.textAlign = 'center'
+    myText.fontSize = 36
+    myText.color = 0x000000
+    myText.userData = userData;
+    myText.position.set(offsetX - text.toString().length * myText.fontSize /1.6/2, offsetY, offsetZ)
+    if (vertical) {
+      myText.position.set(offsetX - store.width/2, offsetY - text.toString().length * myText.fontSize /1.6/2, offsetZ)
+      myText.rotation.z = Math.PI / 2;
+    } else if (flat) {
+      myText.rotation.x = -Math.PI / 2;
+      myText.position.set(offsetX - text.toString().length * myText.fontSize /1.6/2 - store.width/2, offsetY, offsetZ)
+    } else {
+      myText.position.set(offsetX - text.toString().length * myText.fontSize /1.6/2 - store.width/2, offsetY, offsetZ)
+    }
+    myText.sync()
+
+    return myText
+  }
+
+  function addPanel(width: number, height: number, offsetX: number, offsetY: number) {
+    const doorGeo = new THREE.BoxGeometry(width, height, DOOR_THICKNESS);
+    const doorMat = new THREE.MeshStandardMaterial({
+      color: 0xa3760b,
+      map: doorTexture.value,
+      roughness: 1,
+      roughnessMap: doorTexture.value
+    });
+    const door = new THREE.Mesh( doorGeo, doorMat );
+    door.position.set( offsetX, offsetY, 300 );
+    door.castShadow = true
+    door.receiveShadow = true
+
+    return door;
+  }
+
+  function updateModel(scene: THREE.Scene) {
+    clearScene(scene);
+
+    const cubeGeometry = new THREE.BoxGeometry( 100, 100, 100 );
+    const cubeMaterial = new THREE.MeshStandardMaterial( {color: 0x00ff00} );
+    const cube = new THREE.Mesh( cubeGeometry, cubeMaterial );
+    cube.position.set( 0, 50, 500 );
+    cube.castShadow = true
+    cube.receiveShadow = true
+    scene.add(cube);
+
+    const sphereGeo = new THREE.SphereGeometry( 120 );
+    const sphereMat = new THREE.MeshStandardMaterial( {color: 0x00ff00} );
+    const sphere = new THREE.Mesh( sphereGeo, sphereMat );
+    sphere.position.set( 300, 120, 500 );
+    sphere.castShadow = true
+    sphere.receiveShadow = true
+    scene.add(sphere);
+
+    scene.add(addPanel(store.width, store.height, 100, store.height/2));
+    scene.add(addPanel(DOORCASE_THICKNESS, store.height + PADDING,  100 - PADDING - DOORCASE_THICKNESS/2 - store.width/2, store.height/2 + PADDING/2));
+    scene.add(addPanel(DOORCASE_THICKNESS, store.height + PADDING,  100 + PADDING + DOORCASE_THICKNESS/2 + store.width/2, store.height/2 + PADDING/2));
+    scene.add(addPanel(store.width + DOORCASE_THICKNESS*2 + PADDING*2, DOORCASE_THICKNESS,  100, store.height + DOORCASE_THICKNESS/2 + PADDING));
+    scene.add(xMeasurements(store.width, MEASUREMENTS_HEIGHT, 100 - store.width/2, store.height, 300 + DOOR_THICKNESS/2 + AUX_PADDING));
+    scene.add(addText(store.width, 100 + store.width/2, store.height + TEXT_OFFSET, 300 + DOOR_THICKNESS/2 + AUX_PADDING, { width: true }));
+    scene.add(yMeasurements(store.height, MEASUREMENTS_HEIGHT, 100, 0, 300 + DOOR_THICKNESS/2 + AUX_PADDING));
+    scene.add(addText(store.height, 100 - TEXT_OFFSET, store.height/2, 300 + DOOR_THICKNESS/2 + AUX_PADDING, { height: true }, true));
+  }
+
   return {
-    clearScene,
     addFloor,
     initCameraAndControls,
-    loadAllTextures,
     initLight,
     initRenderer,
     requestRenderIfNotRequested,
-    render
+    render,
+    updateModel
   }
 }
