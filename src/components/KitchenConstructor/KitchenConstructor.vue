@@ -8,13 +8,16 @@
 import * as THREE from 'three';
 import {Mesh, Raycaster} from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {useBaseConstructor} from "@/components/KitchenConstructor/composables/useBaseConstructor";
+import {
+  type TUserData,
+  useBaseConstructor
+} from '@/components/KitchenConstructor/composables/useBaseConstructor'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useKitchenConstructorStore } from '@/stores/useKitchenConstructorStore.ts'
 
 type TEmits = {
-  (e: 'click:dimension', userData: TPanelUserData, event: MouseEvent): void
-  (e: 'click:panel', userData: TPanelUserData, event: MouseEvent): void
+  (e: 'click:dimension', userData: TUserData, event: MouseEvent): void
+  (e: 'click:panel', userData: TUserData, event: MouseEvent): void
   (e: 'close'): void
 };
 const emits = defineEmits<TEmits>();

@@ -2,9 +2,9 @@
 
 import {PhX} from "@phosphor-icons/vue";
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import type { TPanelUserData } from '@/components/NewModuleModal/types.ts'
+import type { TUserData } from '@/components/KitchenConstructor/composables/useBaseConstructor.ts'
 type TProps = {
-  userData: TPanelUserData
+  userData: TUserData
 };
 const props = defineProps<TProps>();
 

@@ -6,7 +6,7 @@ import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import {Text} from 'troika-three-text'
 import { ref } from 'vue'
 
-type TUserData = {
+export type TUserData = {
   width?: boolean
   height?: boolean
 }
